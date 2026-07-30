@@ -1,9 +1,11 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
-
+/* These imports are resolved by postcss-import at build time */
 @import './button.css';
 @import './custom-nestable-item.css';
+
+/* No @tailwind base — Filament already has its own base styles.
+   Using base would conflict and break icons/typography. */
+@tailwind components;
+@tailwind utilities;
 
 .filament-tree-list.hidden {
     display: none;
