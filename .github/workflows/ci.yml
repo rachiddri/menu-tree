@@ -1,0 +1,122 @@
+name: CI
+
+on:
+  push:
+    branches: [main, develop]
+    paths-ignore:
+      - '**.md'
+      - 'assets/**'
+      - '.github/ISSUE_TEMPLATE/**'
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  # ── Job 1 : Lint PHP (Pint) ──
+  php-lint:
+    name: PHP Lint (Pint)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: 8.2
+          tools: composer:v2
+          coverage: none
+
+      - name: Get composer cache directory
+        id: composer-cache
+        run: echo "dir=$(composer config cache-files-dir)" >> $GITHUB_OUTPUT
+
+      - name: Cache composer dependencies
+        uses: actions/cache@v4
+        with:
+          path: ${{ steps.composer-cache.outputs.dir }}
+          key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.json') }}
+          restore-keys: ${{ runner.os }}-composer-
+
+      - name: Install dependencies
+        run: composer install --no-progress --prefer-dist --no-interaction
+
+      - name: Run Pint (dry-run)
+        run: vendor/bin/pint --test
+
+  # ── Job 2 : Tests Pest ──
+  tests:
+    name: PHP ${{ matrix.php }} - L${{ matrix.laravel }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    strategy:
+      matrix:
+        php: [8.1, 8.2, 8.3]
+        laravel: [10, 11]
+        exclude:
+          - php: 8.1
+            laravel: 11
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php }}
+          tools: composer:v2
+          coverage: none
+
+      - name: Get composer cache directory
+        id: composer-cache
+        run: echo "dir=$(composer config cache-files-dir)" >> $GITHUB_OUTPUT
+
+      - name: Cache composer dependencies
+        uses: actions/cache@v4
+        with:
+          path: ${{ steps.composer-cache.outputs.dir }}
+          key: ${{ runner.os }}-php${{ matrix.php }}-laravel${{ matrix.laravel }}-composer-${{ hashFiles('**/composer.json') }}
+          restore-keys: |
+            ${{ runner.os }}-php${{ matrix.php }}-composer-
+            ${{ runner.os }}-composer-
+
+      - name: Install dependencies
+        run: |
+          composer config --no-plugins allow-plugins.composer/installers true
+          composer require laravel/framework:^${{ matrix.laravel }}.0 --no-interaction --no-progress --prefer-dist --no-update
+          composer update --no-interaction --no-progress --prefer-dist
+
+      - name: Run Pest
+        run: vendor/bin/pest --no-coverage
+
+  # ── Job 3 : Node / Frontend Build ──
+  frontend-build:
+    name: Frontend Build (JS + CSS)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+          cache-dependency-path: package-lock.json
+
+      - name: Install npm dependencies
+        run: npm ci
+
+      - name: Build JS
+        run: npm run build:scripts
+
+      - name: Build CSS
+        run: npm run build:styles
+
+      - name: Verify built files exist
+        run: |
+          ls -lh resources/dist/filament-tree.js
+          ls -lh resources/dist/components/filament-tree-component.js
+          ls -lh resources/dist/filament-tree.css
