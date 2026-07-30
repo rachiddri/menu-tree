@@ -91,7 +91,7 @@
         {{-- x-ignore prevents Alpine from re-rendering the tree DOM
              which would conflict with SortableJS DOM manipulation --}}
         <div class="filament-tree dd" id="{{ $containerKey }}" x-ignore>
-            <ol class="filament-tree-list dd-list" role="tree" aria-label="{{ $tree->getTreeTitle() }}">
+            <ol class="filament-tree-list dd-list" role="tree" aria-label="{{ __('filament-tree::filament-tree.tree_label') }}">
             @foreach($records as $record)
                 @php
                     $title = $this->getTreeRecordTitle($record);
