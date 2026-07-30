@@ -10,8 +10,6 @@
 
 <div class="filament-tree-component"
     wire:disabled="updateTree"
-    ax-load
-    ax-load-src="{{ \Filament\Support\Facades\FilamentAsset::getAlpineComponentSrc('filament-tree-component', 'solution-forest/filament-tree') }}"
     x-data="treeNestableComponent({
         containerKey: '{{ $containerKey }}',
         maxDepth: {{ $maxDepth }},
