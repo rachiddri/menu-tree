@@ -1,16 +1,198 @@
-/* @import '../../vendor/filament/filament/resources/css/theme.css'; */
-@import 'tailwindcss' source(none);
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
-/* @import '../../vendor/filament/support/resources/css/base.css' layer(base); */
-/* @import '../../vendor/filament/support/resources/css/utilities.css' layer(utilities); */
-/* @variant dark (&:where(.dark, .dark *)); */
-
-@import './jquery.nestable.css';
 @import './button.css';
 @import './custom-nestable-item.css';
 
-@source "../views";
-
 .filament-tree-list.hidden {
     display: none;
+}
+
+/* ============================================
+   SEARCH / FILTER STYLES
+   ============================================ */
+
+.filament-tree-search-wrapper {
+    @apply mb-4;
+}
+
+.filament-tree-search-input {
+    @apply block w-full rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm shadow-sm transition-all duration-200;
+    @apply focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20 focus:outline-none;
+}
+
+.dark .filament-tree-search-input {
+    @apply border-gray-600 bg-gray-800 text-gray-100;
+    @apply focus:border-primary-400 focus:ring-primary-400/20;
+}
+
+.filament-tree-search-highlight {
+    @apply bg-yellow-200 text-yellow-900 rounded-sm px-0.5;
+}
+
+.dark .filament-tree-search-highlight {
+    @apply bg-yellow-600/40 text-yellow-200;
+}
+
+/* ============================================
+   LAZY LOADING
+   ============================================ */
+
+.dd-loading > .dd-item-content {
+    @apply opacity-50;
+}
+
+.dd-loading::after {
+    content: '';
+    @apply absolute inset-0 flex items-center justify-center;
+}
+
+.filament-tree-loading-spinner {
+    @apply inline-block h-4 w-4 animate-spin rounded-full border-2 border-primary-500 border-t-transparent;
+}
+
+/* ============================================
+   SORTABLEJS GHOST / DRAG STYLES
+   ============================================ */
+
+.dd-ghost {
+    @apply opacity-40 border-dashed border-2 border-primary-400 bg-primary-50;
+}
+
+.dark .dd-ghost {
+    @apply border-primary-600 bg-primary-900/30;
+}
+
+.dd-chosen {
+    @apply ring-2 ring-primary-400 ring-offset-2;
+}
+
+.dark .dd-chosen {
+    @apply ring-primary-500 ring-offset-gray-800;
+}
+
+.dd-drag {
+    @apply shadow-lg;
+    opacity: 0.95 !important;
+}
+
+/* Drag clone: hide handle button, action buttons, and expand/collapse */
+.dd-drag .dd-handle > button,
+.dd-drag .fi-tree-actions-ctn,
+.dd-drag .dd-item-btns,
+.dd-drag .dd-nodrag .dd-item-btns {
+    display: none !important;
+}
+
+/* Drag clone: make the handle a simple card */
+.dd-drag .dd-handle {
+    @apply bg-white dark:bg-gray-800 px-3 py-2 min-h-0 h-auto;
+    border-color: var(--color-primary-400) !important;
+}
+
+.dd-drag .dd-content {
+    @apply flex items-center gap-2;
+}
+
+.dd-drag .tree-item-display .item-title {
+    @apply font-semibold text-sm;
+}
+
+.dd-drag .tree-item-display .item-description,
+.dd-drag .tree-item-display .icon-ctn {
+    display: none !important;
+}
+
+/* SortableJS placeholder (original position) */
+.dd-ghost {
+    @apply opacity-40 border-dashed border-2 border-primary-400 bg-primary-50;
+}
+
+.dark .dd-ghost {
+    @apply border-primary-600 bg-primary-900/30;
+}
+
+.dd-chosen {
+    @apply ring-2 ring-primary-400 ring-offset-2;
+}
+
+.dark .dd-chosen {
+    @apply ring-primary-500 ring-offset-gray-800;
+}
+
+.dd-handle {
+    cursor: grab;
+    touch-action: none;
+}
+
+.dd-handle:active {
+    cursor: grabbing;
+}
+
+.dark .dd-handle {
+    @apply text-gray-300 hover:bg-gray-700;
+}
+
+.dd-handle > button {
+    cursor: grab;
+    touch-action: none;
+}
+
+.dd-handle > button:active {
+    cursor: grabbing;
+}
+
+.dd-handle .dd-nodrag,
+.dd-handle .fi-tree-actions-ctn {
+    cursor: default;
+    touch-action: auto;
+}
+
+/* Restore original dd-ghost/dd-dragel styles for backward compat */
+.dd-dragel .dd-handle > button,
+.dd-dragel .fi-tree-actions-ctn {
+    display: none;
+}
+
+/* ============================================
+   DARK MODE OVERRIDES
+   ============================================ */
+
+.dark .dd-item {
+    @apply border-gray-700 bg-gray-800;
+}
+
+.dark .dd-title {
+    @apply text-gray-100;
+}
+
+.dark .dd-item-content {
+    @apply bg-gray-800;
+}
+
+.dark .dd-placeholder {
+    @apply border-gray-600 bg-gray-700/50;
+}
+
+.dark .dd-empty {
+    @apply border-gray-600 bg-gray-700/50;
+}
+
+/* ============================================
+   RESPONSIVE
+   ============================================ */
+
+@media (max-width: 768px) {
+    .filament-tree-search-input {
+        @apply text-base; /* Prevent zoom on mobile */
+    }
+
+    .dd-item {
+        @apply py-2;
+    }
+
+    .dd-handle {
+        @apply min-h-[36px];
+    }
 }

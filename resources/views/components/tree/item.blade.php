@@ -16,7 +16,12 @@
     $actions = $tree->getActions();
 @endphp
 
-<li class="filament-tree-row dd-item" data-id="{{ $recordKey }}">
+<li class="filament-tree-row dd-item" data-id="{{ $recordKey }}"
+    role="treeitem"
+    aria-level="{{ $record->getDepth() + 1 }}"
+    aria-expanded="{{ count($children) > 0 ? ($collapsed ? 'false' : 'true') : null }}"
+    aria-label="{{ $title }}"
+    tabindex="0">
     <div wire:loading.remove.delay
         wire:target="{{ implode(',', Tree::LOADING_TARGETS) }}"
         class="dd-handle"

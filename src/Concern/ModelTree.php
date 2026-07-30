@@ -33,15 +33,25 @@ trait ModelTree
     public static function bootModelTree()
     {
         static::saving(function (Model $model) {
-            if (empty($model->{$model->determineParentColumnName()}) || $model->{$model->determineParentColumnName()} === -1) {
-                $model->{$model->determineParentColumnName()} = static::defaultParentKey();
+            $parentColumn = $model->determineParentColumnName();
+
+            // Handle null parent_id (new default) vs legacy -1
+            if (empty($model->{$parentColumn}) && $model->{$parentColumn} !== 0) {
+                $model->{$parentColumn} = static::defaultParentKey();
+            } elseif ((int) $model->{$parentColumn} === -1) {
+                // Convert legacy -1 to null if default is null
+                $defaultParent = static::defaultParentKey();
+                if ($defaultParent === null) {
+                    $model->{$parentColumn} = null;
+                }
             }
+
             if (empty($model->{$model->determineOrderColumnName()}) || $model->{$model->determineOrderColumnName()} === 0) {
                 $model->setHighestOrderNumber();
             }
         });
 
-        // Delete children
+        // Delete children recursively
         static::deleting(function (Model $model) {
             static::buildSortQuery()
                 ->where($model->determineParentColumnName(), $model->getKey())
@@ -54,12 +64,35 @@ trait ModelTree
 
     public function children(): HasMany
     {
-        return $this->hasMany(static::class, $this->determineParentColumnName())->with('children')->orderBy($this->determineOrderColumnName());
+        return $this->hasMany(static::class, $this->determineParentColumnName())
+            ->with('children')
+            ->orderBy($this->determineOrderColumnName());
+    }
+
+    /**
+     * Get the depth of this node in the tree.
+     */
+    public function getDepth(): int
+    {
+        $depth = 0;
+        $parentColumn = $this->determineParentColumnName();
+        $parentId = $this->{$parentColumn};
+
+        while (! Utils::isRootKey($parentId)) {
+            $depth++;
+            $parent = static::find($parentId);
+            if (! $parent) {
+                break;
+            }
+            $parentId = $parent->{$parentColumn};
+        }
+
+        return $depth;
     }
 
     public function isRoot(): bool
     {
-        return $this->getAttributeValue($this->determineParentColumnName()) === static::defaultParentKey();
+        return Utils::isRootKey($this->getAttributeValue($this->determineParentColumnName()));
     }
 
     public function setHighestOrderNumber(): void
@@ -69,22 +102,33 @@ trait ModelTree
 
     public function getHighestOrderNumber(): int
     {
-        return (int) $this->buildSortQuery()->where($this->determineParentColumnName(), $this->{$this->determineParentColumnName()})->max($this->determineOrderColumnName());
+        return (int) $this->buildSortQuery()
+            ->where($this->determineParentColumnName(), $this->{$this->determineParentColumnName()})
+            ->max($this->determineOrderColumnName());
     }
 
     public function getLowestOrderNumber(): int
     {
-        return (int) $this->buildSortQuery()->where($this->determineParentColumnName(), $this->{$this->determineParentColumnName()})->min($this->determineOrderColumnName());
+        return (int) $this->buildSortQuery()
+            ->where($this->determineParentColumnName(), $this->{$this->determineParentColumnName()})
+            ->min($this->determineOrderColumnName());
     }
 
     public function scopeOrdered(Builder $query, string $direction = 'asc')
     {
-        return $query->orderBy($this->determineParentColumnName(), 'asc')->orderBy($this->determineOrderColumnName(), $direction);
+        return $query->orderBy($this->determineParentColumnName(), 'asc')
+            ->orderBy($this->determineOrderColumnName(), $direction);
     }
 
     public function scopeIsRoot(Builder $query)
     {
-        return $query->where($this->determineParentColumnName(), static::defaultParentKey());
+        $defaultParent = static::defaultParentKey();
+
+        if ($defaultParent === null) {
+            return $query->whereNull($this->determineParentColumnName());
+        }
+
+        return $query->where($this->determineParentColumnName(), $defaultParent);
     }
 
     public function determineOrderColumnName(): string
@@ -186,7 +230,14 @@ trait ModelTree
             childrenKeyName: $childrenKeyName
         );
 
-        $result[static::defaultParentKey()] = __('filament-tree::filament-tree.root');
+        $rootLabel = __('filament-tree::filament-tree.root');
+
+        // Root label handles both null and -1 conventions
+        if (static::defaultParentKey() === null) {
+            $result[''] = $rootLabel;
+        } else {
+            $result[static::defaultParentKey()] = $rootLabel;
+        }
 
         foreach ($nodes as $node) {
             static::buildSelectArrayItem($result, $node, $primaryKeyName, $titleKeyName, $childrenKeyName, 1, $maxDepth);

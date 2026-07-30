@@ -8,7 +8,9 @@
     'filament-tree-list',
     'dd-list',
     'hidden' => $collapsed,
-])>
+])
+    role="group"
+    aria-label="{{ $attributes->get('aria-label') ?? __('filament-tree::filament-tree.tree_label') }}">
     @foreach ($records ?? [] as $record)
         @php
             $title = $this->getTreeRecordTitle($record);

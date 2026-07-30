@@ -1,6 +1,44 @@
 # Changelog
 
-All notable changes to `filament-tree` will be documented in this file.
+All notable changes to `filament-tree` / `menu-tree` will be documented in this file.
+
+## 2.0.0 - 2026-07-30
+
+### 🎯 Fork : `menu-laravel-filament/menu-tree`
+
+Fork de `solutionforest/filament-tree` avec améliorations majeures.
+
+#### 🚀 Nouvelles fonctionnalités
+
+- **SortableJS** remplace jQuery Nestable (Vanilla JS, plus de jQuery)
+- Barre de recherche avec surlignage en direct
+- Lazy loading pour les grands arbres (>50 nœuds)
+- Dark mode natif
+- Empty state quand aucun élément
+- Calcul de profondeur (`getDepth()`)
+
+#### 🔧 Changements techniques
+
+- `parent_id = NULL` au lieu de `-1`
+- `config/filament-tree.php` enrichi (search, lazy_loading, max_depth)
+- Bundle JS optimisé : 94 octets sur les pages sans arbre (au lieu de 84 KB)
+- `x-ignore` sur le conteneur pour éviter les conflits Alpine/SortableJS
+- Tests automatisés Pest (26 tests, 50 assertions)
+
+#### 📦 Dépendances
+
+- Ajouté : `sortablejs: ^1.15.0`
+- Supprimé : `jquery`, `jquery.nestable.js`, `custom.nestable.js`
+
+#### 📝 Documentation
+
+- README.md bilingue (FR/EN) avec table des améliorations
+- RAPPORT.md détaillé (architecture, changements, flux)
+- Nouveau skill : `ouvrir-es-explorer` (ouverture dans ES File Explorer)
+
+**Changelog complet du projet original ci-dessous :**
+
+---
 
 ## 3.1.6 - 2026-04-20
 

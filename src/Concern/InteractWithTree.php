@@ -109,6 +109,31 @@ trait InteractWithTree
     }
 
     /**
+     * Lazy loading: load children for a given parent node.
+     * Used by the frontend when expanding a node with lazy_loading enabled.
+     */
+    public function loadTreeChildren(int $parentId): array
+    {
+        $modelClass = static::$model;
+        $model = app($modelClass);
+        $parentColumn = $model->determineParentColumnName();
+
+        $children = $modelClass::query()
+            ->where($parentColumn, $parentId)
+            ->orderBy($model->determineOrderColumnName())
+            ->get();
+
+        $html = view('filament-tree::components.tree.list', [
+            'records' => $children,
+            'containerKey' => 'filament_tree_container_' . $this->getId(),
+            'tree' => $this->getCachedTree(),
+            'collapsed' => false,
+        ])->render();
+
+        return ['html' => $html];
+    }
+
+    /**
      * Update the tree list.
      */
     public function updateTree(?array $list = null): array

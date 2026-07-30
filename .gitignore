@@ -11,3 +11,9 @@ phpunit.xml
 phpstan.neon
 testbench.yaml
 vendor
+
+# Test app (local development only)
+test-app/
+
+# Duplicate minified CSS (built from filament-tree.css)
+resources/dist/filament-tree-min.css
